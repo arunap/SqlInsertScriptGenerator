@@ -1,0 +1,8 @@
+{
+    "ConnectionString": "Server=LAPTOP-86HEPEVQ\\SQLEXPRESS;Database=SQLPractice;Trusted_Connection=True;MultipleActiveResultSets=true; Integrated Security=True;TrustServerCertificate=True",
+    "TableNameMap": {
+        "Departments": "Departments",
+        "Employees": "Employees",
+        "Salaries": "Salaries"
+    }
+}
