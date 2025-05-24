@@ -59,22 +59,6 @@ internal class Program
         return dataTable;
     }
 
-    public static string GenerateInsertScripts(DataSet dataSet, Dictionary<string, string>? tableNameMap = null)
-    {
-        var sb = new StringBuilder();
-
-        foreach (DataTable table in dataSet.Tables)
-        {
-            string tableName = tableNameMap?.ContainsKey(table.TableName) == true
-                ? tableNameMap[table.TableName]
-                : table.TableName;
-
-            sb.AppendLine(GenerateInsertScript(table, tableName));
-        }
-
-        return sb.ToString();
-    }
-
     public static string GenerateInsertScript(DataTable table, string tableName)
     {
         if (table == null || table.Rows.Count == 0) return string.Empty;
