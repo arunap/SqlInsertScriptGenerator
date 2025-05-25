@@ -33,18 +33,22 @@ internal class Program
 
         Directory.CreateDirectory(_scriptFolderPath);
 
+        int scriptIndex = 1;
         foreach (var tableName in settingsJson.TableNameMap.Keys)
         {
             Console.WriteLine($"Loading table: {tableName}");
             var dataTable = LoadTable(settingsJson.ConnectionString, tableName);
             Console.WriteLine($"Loaded {dataTable.Rows.Count} rows from {tableName}.");
 
-            string script = GenerateInsertScript(dataTable, tableName);
+            string scriptString = GenerateInsertScript(dataTable, tableName);
 
             Console.WriteLine("Generating insert scripts...");
-            File.WriteAllText(Path.Combine(_scriptFolderPath, $"{tableName}_INSERT.sql"), script);
 
-            Console.WriteLine($"{tableName}_INSERT.sql - scripts generated successfully.");
+            string formattedScriptName = $"{scriptIndex.ToString("D2")}_{tableName}_INSERT.sql";
+            File.WriteAllText(Path.Combine(_scriptFolderPath, formattedScriptName), scriptString);
+
+            Console.WriteLine($"{formattedScriptName} - scripts generated successfully.");
+            scriptIndex++;
         }
 
         Console.ReadLine();
@@ -70,7 +74,12 @@ internal class Program
         var sb = new StringBuilder();
 
         if (_truncateBeforeInsert)
+        {
+            sb.AppendLine("");
             sb.AppendLine($"TRUNCATE TABLE {tableName};");
+            sb.AppendLine("GO");
+            sb.AppendLine("");
+        }
 
         foreach (DataRow row in table.Rows)
         {
@@ -86,6 +95,7 @@ internal class Program
             }
 
             sb.AppendLine($"INSERT INTO {tableName} ({string.Join(", ", columnNames)}) VALUES ({string.Join(", ", values)});");
+            sb.AppendLine("GO");
         }
 
         return sb.ToString();
