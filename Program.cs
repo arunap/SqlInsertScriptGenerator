@@ -9,7 +9,7 @@ internal class Program
 {
     private static readonly string _settingFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
     private static readonly string _scriptFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DataScripts");
-
+    private static bool _truncateBeforeInsert;
 
     private static void Main(string[] args)
     {
@@ -26,8 +26,12 @@ internal class Program
         var settingsJson = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(_settingFilePath));
         ArgumentNullException.ThrowIfNull(settingsJson, nameof(settingsJson));
 
-        if (!Directory.Exists(_scriptFolderPath))
-            Directory.CreateDirectory(_scriptFolderPath);
+        _truncateBeforeInsert = settingsJson.TruncateBeforeInsert;
+
+        if (Directory.Exists(_scriptFolderPath))
+            Directory.Delete(_scriptFolderPath, true);
+
+        Directory.CreateDirectory(_scriptFolderPath);
 
         foreach (var tableName in settingsJson.TableNameMap.Keys)
         {
@@ -38,9 +42,9 @@ internal class Program
             string script = GenerateInsertScript(dataTable, tableName);
 
             Console.WriteLine("Generating insert scripts...");
-            File.WriteAllText(Path.Combine(_scriptFolderPath, "DataScripts", $"{tableName}_insert.sql"), script);
+            File.WriteAllText(Path.Combine(_scriptFolderPath, $"{tableName}_INSERT.sql"), script);
 
-            Console.WriteLine($"{tableName}_insert.sql - scripts generated successfully.");
+            Console.WriteLine($"{tableName}_INSERT.sql - scripts generated successfully.");
         }
 
         Console.ReadLine();
@@ -49,7 +53,7 @@ internal class Program
     public static DataTable LoadTable(string connectionString, string tableName)
     {
         using var connection = new SqlConnection(connectionString);
-        var query = $"SELECT * FROM [{tableName}]";
+        var query = $"SELECT * FROM {tableName}";
 
         using var adapter = new SqlDataAdapter(query, connection);
         var dataTable = new DataTable { TableName = tableName };
@@ -65,6 +69,9 @@ internal class Program
 
         var sb = new StringBuilder();
 
+        if (_truncateBeforeInsert)
+            sb.AppendLine($"TRUNCATE TABLE {tableName};");
+
         foreach (DataRow row in table.Rows)
         {
             var columnNames = new List<string>();
@@ -78,7 +85,7 @@ internal class Program
                 values.Add(FormatSqlValue(value, column.DataType));
             }
 
-            sb.AppendLine($"INSERT INTO [{tableName}] ({string.Join(", ", columnNames)}) VALUES ({string.Join(", ", values)});");
+            sb.AppendLine($"INSERT INTO {tableName} ({string.Join(", ", columnNames)}) VALUES ({string.Join(", ", values)});");
         }
 
         return sb.ToString();
@@ -101,6 +108,17 @@ internal class Program
         if (type == typeof(decimal) || type == typeof(float) || type == typeof(double))
             return Convert.ToDouble(value).ToString(CultureInfo.InvariantCulture);
 
-        return value.ToString() ?? string.Empty; // int, long, etc.
+        if (type == typeof(Guid) || type == typeof(Guid?))
+            return $"'{value}'";
+
+        if (type == typeof(byte[]))
+        {
+            var bytes = (byte[])value;
+            if (bytes.Length == 0)
+                return "0x"; // empty binary
+            return "0x" + BitConverter.ToString(bytes).Replace("-", "");
+        }
+
+        return value.ToString() ?? string.Empty;
     }
 }

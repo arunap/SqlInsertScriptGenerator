@@ -1,8 +1,9 @@
 {
-    "ConnectionString": "Server=LAPTOP-86HEPEVQ\\SQLEXPRESS;Database=SQLPractice;Trusted_Connection=True;MultipleActiveResultSets=true; Integrated Security=True;TrustServerCertificate=True",
+    "ConnectionString": "Server=LAPTOP-86HEPEVQ\\SQLEXPRESS;Database=AdventureWorksLT2022;Trusted_Connection=True;MultipleActiveResultSets=true; Integrated Security=True;TrustServerCertificate=True",
     "TableNameMap": {
-        "Departments": "Departments",
-        "Employees": "Employees",
-        "Salaries": "Salaries"
-    }
+        "SalesLT.Product": "SalesLT.Product",
+        "SalesLT.Customer": "SalesLT.Customer",
+        "SalesLT.SalesOrderDetail": "SalesLT.SalesOrderDetail"
+    },
+    "TruncateBeforeInsert": true
 }
