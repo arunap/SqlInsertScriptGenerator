@@ -1,0 +1,10 @@
+{
+  "ScriptFolderPath": "C:\\Path\\To\\SqlScripts",
+  "TableDependencyOrder": [
+    "Users",
+    "Products",
+    "Orders",
+    "OrderItems"
+  ],
+  "OutputFile": "combined.sql"
+}
